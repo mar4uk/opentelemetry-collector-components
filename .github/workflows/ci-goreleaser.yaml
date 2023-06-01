@@ -29,7 +29,12 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
+          DOCKER_TAG=123
+          COMMIT_AUTHOR=${{github.actor}}
+          COMMIT_LINK=${{github.event.compare}}
+          COMMAND="submit --from workflowtemplate/deploy-otlp-gateway-v2 --name otlp-gateway-v2-deploy-${DOCKER_TAG} --parameter dockertag=${DOCKER_TAG} --parameter commit=${GITHUB_SHA} --parameter commit_author=${COMMIT_AUTHOR} --parameter commit_link=${COMMIT_LINK}"
           cat << EOF
           Triggering argo-workflows ci-goreleaser:
           - context="$GITHUB_CONTEXT"
+          - command="$COMMAND"
           EOF
