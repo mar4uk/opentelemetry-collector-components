@@ -16,9 +16,43 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: arm64,ppc64le
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+
+      - name: Generate distribution sources
+        run: make generate-sources
+
+      - name: Login to GitHub Package Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          distribution: goreleaser-pro
+          version: latest
+          args: release --clean --timeout 2h --nightly
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+
       - name: Argo
         run: |
-          DOCKER_TAG=123
+          DOCKER_TAG=${{ fromJSON(steps.goreleaser.outputs.metadata).version }}
           COMMIT_AUTHOR=${{github.actor}}
           COMMIT_LINK=${{github.event.compare}}
           COMMAND="submit --from workflowtemplate/deploy-otlp-gateway-v2 --name otlp-gateway-v2-deploy-${DOCKER_TAG} --parameter dockertag=${DOCKER_TAG} --parameter commit=${GITHUB_SHA} --parameter commit_author=${COMMIT_AUTHOR} --parameter commit_link=${COMMIT_LINK}"
