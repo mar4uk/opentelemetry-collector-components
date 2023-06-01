@@ -25,25 +25,12 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Argo
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          cat << EOF
+          Triggering argo-workflows ci-goreleaser:
+          - context="$GITHUB_CONTEXT"
+          EOF
 
-      - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
-        with:
-          platforms: arm64,ppc64le
-
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Setup Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-
-      - name: Generate the sources
-        run: make generate-sources
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v3
-        with:
-          version: latest
-          args: --snapshot --rm-dist --timeout 2h
