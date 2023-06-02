@@ -22,7 +22,8 @@ import (
 
 var (
 	ImagePrefixes = []string{"ghcr.io/grafana/opentelemetry-collector-components"}
-	Architectures = []string{"386", "amd64", "arm64", "ppc64le"}
+	//Architectures = []string{"386", "amd64", "arm64", "ppc64le"}
+	Architectures = []string{"amd64"}
 
 	distsFlag = flag.String("d", "", "Distributions(s) to build, comma-separated")
 )

@@ -58,6 +58,8 @@ jobs:
 #          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
 
       - name: Argo
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           DOCKER_TAG=${{ fromJSON(steps.goreleaser.outputs.metadata).version }}
           COMMIT_AUTHOR=${{github.actor}}
@@ -66,4 +68,11 @@ jobs:
           cat << EOF
           Triggering argo-workflows ci-goreleaser:
           - command="$COMMAND"
+          - context="$GITHUB_CONTEXT"
           EOF
+          docker run \
+          -e ARGO_TOKEN="${{ secrets.ARGO_TOKEN }}" \
+          -e ARGO_NAMESPACE="otlp-gateway-v2-cd" \
+          -e ADD_CI_LABELS="true" \
+          -e COMMAND="${COMMAND}" \
+          us.gcr.io/kubernetes-dev/drone/plugins/argo-cli
